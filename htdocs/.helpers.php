@@ -159,3 +159,15 @@ function uri_to_ascii($uri)
     return rawurlencode($matches[0]);
   }, unparse_url($uri));
 }
+
+function user_is_bot()
+{
+  $ua = @$_SERVER['HTTP_USER_AGENT'];
+  if(empty($ua)) return true;
+  if(strpos($ua, '(') === false) return true;
+  if(preg_match('/bot|crawl|slurp|spider|mediapartners|curl|dataprovider|search|get|find|java|google|yahoo|teoma|contaxe|yandex|libwww-perl|facebookexternalhit|python|mastodon/i', $ua))
+  {
+    return true;
+  }
+  return false;
+}

@@ -139,6 +139,8 @@ abstract class Triples
   public static function addForType($type, $graph, $id, $queries = false, &$link_old = false)
   {
     global $BASE;
+    $queries = $queries && !user_is_bot();
+    
     $triples = self::map()[$type];
     $link_old = $triples->link_old;
     $id = $triples->normalizeId($id);
@@ -158,6 +160,8 @@ abstract class Triples
   public static function addAllForType($type, $graph, $queries = false, &$link_old = false)
   {
     global $PREFIX;
+    $queries = $queries && !user_is_bot();
+    
     $triples = self::map()[$type];
     $link_old = $triples->link_old;
     $ontology = "$PREFIX/$type/";
