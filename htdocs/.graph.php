@@ -1091,6 +1091,10 @@ function addIanaRecord($graph, $subject, $records, $key)
   {
     $graph->addCompressedTriple($subject, 'dcterms:modified', $info['updated'], xsdDateType($info['updated']));
   }
+  if(isset($info['description']))
+  {
+    $graph->addCompressedTriple($subject, 'dcterms:description', $info['description'], 'literal', 'en');
+  }
   foreach($info['refs'] as $url => $label)
   {
     $graph->addCompressedTriple($subject, 'uriv:IANARef', $url);
