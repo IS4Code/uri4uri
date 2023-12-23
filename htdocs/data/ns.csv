@@ -55,6 +55,7 @@ whoIsRecord,p,old,WHOIS record
 hasWhoIsServer,p,old,WHOIS server
 rdapRecord,p,new,RDAP record
 hasRdapServer,p,new,RDAP server
+hstsEnabled,p,new,HSTS enabled
 
 IP,c,new,IP Address
 IPv4,c,new,IPv4 Address

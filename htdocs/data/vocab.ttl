@@ -299,6 +299,12 @@
   schema:rangeIncludes :Domain ;
   dcterms:description "Links to the domain of the RDAP server used for the domain or IP address."@en .
 
+:hstsEnabled
+  a owl:DatatypeProperty ;
+  schema:domainIncludes :Domain ;
+  rdfs:range xsd:boolean ;
+  dcterms:description "Specifies whether HTTP Strict Transport Security (HSTS) is enabled for this domain."@en .
+
 
 :IP
   rdfs:subClassOf :Host ;

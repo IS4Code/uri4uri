@@ -1160,7 +1160,7 @@ class HostTriples extends Triples
     return parent::normalizeId($utf);
   }
 
-  protected function add($graph, $host, $queries = false, &$special_type = null, $is_domain = false)
+  protected function add($graph, $host, $queries = false, &$special_types = null, $is_domain = false)
   {
     $subject = 'host:'.encodeIdentifier($host);
     $graph->addCompressedTriple($subject, 'rdfs:isDefinedBy', 'host:');
@@ -1177,19 +1177,19 @@ class HostTriples extends Triples
     {
       if(filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false)
       {
-        return $this->addIPv4($graph, $subject, $host, $queries, $special_type);
+        return $this->addIPv4($graph, $subject, $host, $queries, $special_types);
       }
       if(preg_match('/^\[(.+)\]$/s', $host, $matches))
       {
         if(filter_var($matches[1], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false)
         {
-          return $this->addIPv6($graph, $subject, $host, $matches[1], $queries, $special_type);
+          return $this->addIPv6($graph, $subject, $host, $matches[1], $queries, $special_types);
         }else{
-          return $this->addIPFuture($graph, $subject, $host, $matches[1], $queries, $special_type);
+          return $this->addIPFuture($graph, $subject, $host, $matches[1], $queries, $special_types);
         }
       }
     }
-    return $this->addDomain($graph, $subject, $host, $host_idn, $queries, $special_type);
+    return $this->addDomain($graph, $subject, $host, $host_idn, $queries, $special_types);
   }
   
   protected function resolveDomain($graph, $subject, $ip)
@@ -1261,7 +1261,7 @@ class HostTriples extends Triples
     }
   }
   
-  protected function addIPv4($graph, $subject, $ip, $queries, &$special_type)
+  protected function addIPv4($graph, $subject, $ip, $queries, &$special_types)
   {
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP');
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IPv4');
@@ -1288,7 +1288,7 @@ class HostTriples extends Triples
     return $subject;
   }
   
-  protected function addIPv6($graph, $subject, $ip_wrapped, $ip, $queries, &$special_type)
+  protected function addIPv6($graph, $subject, $ip_wrapped, $ip, $queries, &$special_types)
   {
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP');
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IPv6');
@@ -1316,7 +1316,7 @@ class HostTriples extends Triples
     return $subject;
   }
   
-  protected function addIPFuture($graph, $subject, $ip_wrapped, $ip, $queries, &$special_type)
+  protected function addIPFuture($graph, $subject, $ip_wrapped, $ip, $queries, &$special_types)
   {
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP');
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP-Future');
@@ -1330,60 +1330,69 @@ class HostTriples extends Triples
     return $subject;
   }
   
-  protected function addDomainHsts($graph, $subject, $domain, $domain_idn, $queries)
+  protected function addDomainHsts($graph, $subject, $domain, $domain_idn, $queries, $registered)
   {
-    if($domain_idn !== false)
+    if($domain_idn === false)
     {
-      $domain_keys = explode('.', $domain_idn);
-      $hsts = get_hsts_domains();
-      $keys_len = count($domain_keys);
-      $hsts_inherited_flags = 0;
-      $hsts_flags = 0;
-      for($i = $keys_len - 1; $i >= 0; $i--)
+      return;
+    }          
+    $domain_keys = explode('.', $domain_idn);
+    $hsts = get_hsts_domains();
+    $keys_len = count($domain_keys);
+    $hsts_inherited_flags = 0;
+    $hsts_flags = 0;
+    for($i = $keys_len - 1; $i >= 0; $i--)
+    {
+      $domain_key = $domain_keys[$i];
+      if(!isset($hsts[$domain_key]))
       {
-        $domain_key = $domain_keys[$i];
-        if(!isset($hsts[$domain_key]))
-        {
-          $hsts = null;
-          $hsts_flags = 0;
-          break;
-        }
-        $hsts = &$hsts[$domain_key];
-        if(isset($hsts['']))
-        {
-          $hsts_flags = $hsts[''];
-          if(($hsts_flags & 1) !== 0) // include_subdomains
-          {
-            $hsts_inherited_flags |= $hsts_flags;
-          }
-        }else{
-          $hsts_flags = 0;
-        }
+        $hsts = null;
+        $hsts_flags = 0;
+        break;
       }
-      $hsts_flags |= $hsts_inherited_flags;
-      if(!empty($hsts) && $queries)
+      $hsts = &$hsts[$domain_key];
+      if(isset($hsts['']))
       {
-        $subdomains = array_keys($hsts);
-        shuffle($subdomains);
-        $count = 0;
-        $max_count = rand(200, 400);
-        foreach($subdomains as $subdomain)
+        $hsts_flags = $hsts[''];
+        if(($hsts_flags & 1) !== 0) // include_subdomains
         {
-          if($subdomain !== '')
+          $hsts_inherited_flags |= $hsts_flags;
+        }
+      }else{
+        $hsts_flags = 0;
+      }
+    }
+    $hsts_flags |= $hsts_inherited_flags;
+    if(($hsts_flags & 2) !== 0) // force-https
+    {
+      $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'true', 'xsd:boolean');
+    }else if($registered)
+    {
+      // Not enabled for old TLDs or special-use domains
+      $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'false', 'xsd:boolean');
+    }
+    if(!empty($hsts) && $queries)
+    {
+      $subdomains = array_keys($hsts);
+      shuffle($subdomains);
+      $count = 0;
+      $max_count = rand(200, 400);
+      foreach($subdomains as $subdomain)
+      {
+        if($subdomain !== '')
+        {
+          if(++$count >= $max_count)
           {
-            if(++$count >= $max_count)
-            {
-              break;
-            }
-            $inner_subject = 'host:'.encodeIdentifier($this->normalizeId("$subdomain.$domain_idn"));
-            $graph->addCompressedTriple($subject, 'uriv:subDom', $inner_subject);
+            break;
           }
+          $inner_subject = 'host:'.encodeIdentifier($this->normalizeId("$subdomain.$domain_idn"));
+          $graph->addCompressedTriple($subject, 'uriv:subDom', $inner_subject);
         }
       }
     }
   }
     
-  protected function addDomain($graph, $subject, $domain, $domain_idn, $queries = false, &$special_type = null)
+  protected function addDomain($graph, $subject, $domain, $domain_idn, $queries = false, &$special_types = null)
   {
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:Domain');
     
@@ -1391,7 +1400,11 @@ class HostTriples extends Triples
     if($domain_idn !== false && isset($special_domains["$domain_idn."]))
     {
       addIanaRecord($graph, $subject, $special_domains, "$domain_idn.");
-      $special_type = 'uriv:Domain-Special';
+      if(empty($special_types))
+      {
+        $special_types = array();
+      }
+      $special_types[] = 'uriv:Domain-Special';
     }
     
     # Super Domains
@@ -1442,20 +1455,26 @@ class HostTriples extends Triples
       }
       
       list($domain_name, $domain) = explode('.', $domain, 2);
-      $inner_subject = $this->add($graph, $domain, false, $special_type, true);
+      $inner_subject = $this->add($graph, $domain, false, $special_types, true);
       $graph->addCompressedTriple($inner_subject, 'uriv:subDom', $subject);
-      if(!empty($special_type))
+      if(is_array($special_types))
       {
-        $graph->addCompressedTriple($subject, 'rdf:type', $special_type);
+        foreach($special_types as $special_type)
+        {
+          $graph->addCompressedTriple($subject, 'rdf:type', $special_type);
+        }
       }
       
-      $this->addDomainHsts($graph, $subject, $domain, $domain_idn, $queries);
+      $this->addDomainHsts($graph, $subject, $domain, $domain_idn, $queries, isset($special_domains["$domain_idn."]));
       
       return $subject;
     }
-    if(!empty($special_type))
+    if(is_array($special_types))
     {
-      $graph->addCompressedTriple($subject, 'rdf:type', $special_type);
+      foreach($special_types as $special_type)
+      {
+        $graph->addCompressedTriple($subject, 'rdf:type', $special_type);
+      }
     }
   
     # TLD Shenanigans...
@@ -1482,7 +1501,7 @@ class HostTriples extends Triples
       $graph->addCompressedTriple("$subject#sponsor", 'rdfs:label', $tld['sponsor'], 'xsd:string');
     }
     
-    $this->addDomainHsts($graph, $subject, $domain, $domain_idn, $queries);
+    $this->addDomainHsts($graph, $subject, $domain, $domain_idn, $queries, isset($tlds[$domain_idn]) || isset($special_domains["$domain_idn."]));
     
     if(!$queries || $domain_idn === false) return $subject;
     
