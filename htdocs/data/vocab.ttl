@@ -322,6 +322,12 @@
   foaf:page <https://hstspreload.org/> ;
   dcterms:description "Specifies whether HTTP Strict Transport Security (HSTS) is enabled for this domain."@en .
 
+:publicSuffix
+  a owl:ObjectProperty ;
+  schema:domainIncludes :Domain ;
+  schema:rangeIncludes :Domain-PublicSuffix ;
+  dcterms:description "Links to the domain that servers as a public suffix or registry for this domain."@en .
+
 
 :IP
   rdfs:subClassOf :Host ;

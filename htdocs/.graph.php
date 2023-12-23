@@ -1409,22 +1409,21 @@ class HostTriples extends Triples
           $hsts_flags = 0;
         }
       }
+      $derived = false;
       $hsts_flags |= $hsts_inherited_flags;
       if(($hsts_flags & 2) !== 0) // force-https
       {
+        $derived = true;
         $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'true', 'xsd:boolean');
       }else if($registered)
       {
         // Not enabled for old TLDs or special-use domains
         $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'false', 'xsd:boolean');
       }
-      if(!empty($hsts) || $hsts_flags !== 0)
+      if(!empty($hsts_source) && (!empty($hsts) || $derived))
       {
-        if(!empty($hsts_source))
-        {
-          $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $hsts_source);
-          $graph->addCompressedTriple($hsts_source, 'rdf:type', 'foaf:Document');
-        }
+        $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $hsts_source);
+        $graph->addCompressedTriple($hsts_source, 'rdf:type', 'foaf:Document');
       }
     }
     
@@ -1437,13 +1436,26 @@ class HostTriples extends Triples
       $public_source = @$public['#source'];
       
       $public_flags = 0;
+      $public_index = $keys_len;
       for($i = $keys_len - 1; $i >= 0; $i--)
       {
         $domain_key = $domain_keys[$i];
-        if($i === 0 && isset($public['*']))
+        if(isset($public['*']))
         {
-          // Last domain may be a wildcard
-          $public_flags = $public['*'][''];
+          $wildcard = $public['*'];
+          if(isset($wildcard['']))
+          {
+            $flags = $wildcard[''];
+            if(($flags & 1) !== 0)
+            {
+              $public_index = $i;
+            }
+            if($i === 0)
+            {
+              // Last domain matches a wildcard
+              $public_flags = $flags;
+            }
+          }
         }
         if(!isset($public[$domain_key]))
         {
@@ -1451,19 +1463,35 @@ class HostTriples extends Triples
           break;
         }
         $public = &$public[$domain_key];
-        if($i === 0 && isset($public['']))
+        if(isset($public['']))
         {
-          $public_flags = $public[''];
+          $flags = $public[''];
+          if(($flags & 1) !== 0)
+          {
+            $public_index = $i;
+          }
+          if($i === 0)
+          {
+            // Last domain matches the record
+            $public_flags = $flags;
+          }
         }
       }
-      if(!empty($public) || $public_flags !== 0)
+      $derived = false;
+      if($public_flags !== 0)
       {
+        $derived = true;
         $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:Domain-PublicSuffix');
-        if(!empty($public_source))
-        {
-          $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $public_source);
-          $graph->addCompressedTriple($public_source, 'rdf:type', 'foaf:Document');
-        }
+      }
+      if($public_index > 0 && $public_index < $keys_len)
+      {
+        $derived = true;
+        $graph->addCompressedTriple($subject, 'uriv:publicSuffix', $this->add($graph, implode('.', array_slice($domain_keys, $public_index)), false, $special_types, true));
+      }
+      if(!empty($public_source) && (!empty($public) || $derived))
+      {
+        $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $public_source);
+        $graph->addCompressedTriple($public_source, 'rdf:type', 'foaf:Document');
       }
     }
     
