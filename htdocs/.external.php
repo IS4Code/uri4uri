@@ -336,6 +336,22 @@ function get_locally_served_dns_zones()
   });
 }
 
+function get_special_ipv4_addresses()
+{
+  return get_json_source(__DIR__.'/data/specialipv4.json', function($cache_file)
+  {
+    return update_iana_records($cache_file, 'iana-ipv4-special-registry', 'address', false);
+  });
+}
+
+function get_special_ipv6_addresses()
+{
+  return get_json_source(__DIR__.'/data/specialipv6.json', function($cache_file)
+  {
+    return update_iana_records($cache_file, 'iana-ipv6-special-registry', 'address', false);
+  });
+}
+
 function get_urn_namespaces()
 {
   return get_json_source(__DIR__.'/data/urnns.json', function($cache_file)

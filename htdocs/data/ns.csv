@@ -64,6 +64,9 @@ IP,c,new,IP Address
 IPv4,c,new,IPv4 Address
 IPv6,c,new,IPv6 Address
 IP-Future,c,new,Future IP Address
+IP-Special,c,new,Special-Purpose IP Address
+IP-Private,c,new,Private IP Address
+IP-Reserved,c,new,Reserved IP Address
 
 Port,c,new,Port
 

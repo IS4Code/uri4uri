@@ -1048,7 +1048,7 @@ class FieldTriples extends Triples
   }
 }
 
-function addIanaRecord($graph, $subject, $records, $key)
+function addIanaRecord($graph, $subject, $records, $key, $descriptions = null)
 {
   $info = @$records[$key];
   if(empty($info))
@@ -1070,7 +1070,7 @@ function addIanaRecord($graph, $subject, $records, $key)
   
   if(isset($info['description']))
   {
-    $graph->addCompressedTriple($subject, 'rdfs:label', $info['description'], 'literal');
+    $graph->addCompressedTriple($subject, 'rdfs:label', $info['description'], 'literal', 'en');
   }
   if(isset($info['type']))
   {
@@ -1094,6 +1094,16 @@ function addIanaRecord($graph, $subject, $records, $key)
   if(isset($info['description']))
   {
     $graph->addCompressedTriple($subject, 'dcterms:description', $info['description'], 'literal', 'en');
+  }
+  if(!empty($descriptions))
+  {
+    foreach($descriptions as $desc_key)
+    {
+      if(isset($info[$desc_key]))
+      {
+        $graph->addCompressedTriple($subject, 'dcterms:description', $info[$desc_key], 'literal', 'en');
+      }
+    }
   }
   foreach($info['refs'] as $url => $label)
   {
@@ -1265,14 +1275,42 @@ class HostTriples extends Triples
     }
   }
   
-  protected function addIPv4($graph, $subject, $ip, $queries, &$special_types)
+  protected function addIP($graph, $subject, $ip, $queries, $special_addresses, &$special_types, &$packed)
   {
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP');
-    $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IPv4');
+    
+    if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false)
+    {
+      $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP-Private');
+    }
+    
+    if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE) === false)
+    {
+      $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP-Reserved');
+    }
     
     $packed = inet_pton($ip);
     $graph->addCompressedTriple($subject, 'skos:notation', bin2hex($packed), 'xsd:hexBinary');
     $graph->addCompressedTriple($subject, 'skos:notation', base64_encode($packed), 'xsd:base64Binary');
+    
+    foreach($special_addresses as $masks => $special)
+    {
+      foreach(explode(',', $masks) as $mask)
+      {
+        if(ip_range_match($packed, trim($mask)))
+        {
+          $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP-Special');
+          addIanaRecord($graph, $subject, $special_addresses, $masks, array('name'));
+        }
+      }
+    }
+  }
+  
+  protected function addIPv4($graph, $subject, $ip, $queries, &$special_types)
+  {
+    $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IPv4');
+    
+    $this->addIP($graph, $subject, $ip, $queries, get_special_ipv4_addresses(), $special_types, $packed);
     
     if(!$queries) return $subject;
     
@@ -1294,12 +1332,9 @@ class HostTriples extends Triples
   
   protected function addIPv6($graph, $subject, $ip_wrapped, $ip, $queries, &$special_types)
   {
-    $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IP');
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:IPv6');
     
-    $packed = inet_pton($ip);
-    $graph->addCompressedTriple($subject, 'skos:notation', bin2hex($packed), 'xsd:hexBinary');
-    $graph->addCompressedTriple($subject, 'skos:notation', base64_encode($packed), 'xsd:base64Binary');
+    $this->addIP($graph, $subject, $ip, $queries, get_special_ipv6_addresses(), $special_types, $packed);
     
     if(!$queries) return $subject;
     

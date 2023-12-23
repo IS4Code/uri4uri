@@ -336,6 +336,19 @@
   rdfs:subClassOf :IP ;
   dcterms:description "A future IP address used in a URI."@en .
 
+:IP-Special
+  rdfs:subClassOf :IP , :Host-Special ;
+  foaf:page rfc:6890 ;
+  dcterms:description "A special-purpose IP address."@en .
+
+:IP-Private
+  rdfs:subClassOf :IP-Special , :Host-Local ;
+  dcterms:description "A private IP address."@en .
+
+:IP-Reserved
+  rdfs:subClassOf :IP-Special ;
+  dcterms:description "A reserved IP address."@en .
+
 
 # Port
 

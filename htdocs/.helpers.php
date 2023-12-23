@@ -171,3 +171,30 @@ function user_is_bot()
   }
   return false;
 }
+
+function ip_range_match($addr, $range)
+{
+  @list($mask, $bits) = explode('/', $range);
+  if(empty($bits))
+  {
+    return false;
+  }
+  $mask = inet_pton($mask);
+  $bytes = intdiv($bits, 8);
+  if(strncmp($addr, $mask, $bytes) !== 0)
+  {
+    return false;
+  }
+  $bits = $bits % 8;
+  if($bits !== 0)
+  {
+    $addr = ord($addr[$bytes]);
+    $mask = ord($mask[$bytes]);
+    $check = ~((1 << (8 - $bits)) - 1);
+    if(($addr & $check) !== ($mask & $check))
+    {
+      return false;
+    }
+  }
+  return true;
+}
