@@ -187,14 +187,14 @@ function renderResource($graph, $resource, &$visited_nodes, $parent = null, $fol
         if(!empty($lang))
         {
           $lang = htmlspecialchars($lang);
-          $value = "\"<span class='literal' lang='$lang'>".nl2br(htmlspecialchars($r2), false)."</span>\" <small class='datatype'>($lang)</small>";
+          $value = "<q><span class='literal' lang='$lang'>".nl2br(htmlspecialchars($r2), false)."</span></q> <small class='datatype'>($lang)</small>";
         }else{
-          $value = "\"<span class='literal'>".nl2br(htmlspecialchars($r2), false)."</span>\"";
+          $value = "<q><span class='literal'>".nl2br(htmlspecialchars($r2), false)."</span></q>";
         }
       }else if(!str_starts_with($type, '#'))
       {
         $rt = $graph->resource($type);
-        $value = "\"<span class='literal'>".nl2br(htmlspecialchars($r2))."</span>\" <small class='datatype'>[".prettyResourceLink($graph, $rt)."]</small>";
+        $value = "<q><span class='literal'>".nl2br(htmlspecialchars($r2))."</span></q> <small class='datatype'>[".prettyResourceLink($graph, $rt)."]</small>";
       }else{
         global $page_url;
         if(str_starts_with($value, "$page_url#") && !isset($visited_nodes[$res_key]))
