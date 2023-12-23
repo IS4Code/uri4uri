@@ -1421,7 +1421,7 @@ class HostTriples extends Triples
         {
           $special_types = array();
         }
-        $special_types[] = 'uriv:Host-LocallyServed';
+        $special_types[] = 'uriv:Domain-Local';
       }
     }
     

@@ -34,12 +34,14 @@ URIScheme,c,old,URI Scheme
 URISchemeDatatype,d,old,URI Scheme Identifier
 
 Host,c,new,Host
-Host-LocallyServed,c,new,Locally-Served Host
+Host-Special,c,new,Special Host
+Host-Local,c,new,Local Host
 HostDatatype,d,new,URI Host Identifier
 HostDatatype-Encoded,d,new,URI Host Identifier (ASCII)
 
 Domain,c,old,Internet Domain
 Domain-Special,c,new,Special-Use Domain
+Domain-Local,c,new,Locally-Served DNS Zone Domain
 TopLevelDomain,c,old,Top-Level Domain
 TopLevelDomain-CountryCode,c,old,Country Top-Level Domain
 TopLevelDomain-Generic,c,old,Generic Top-Level Domain

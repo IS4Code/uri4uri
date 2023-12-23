@@ -190,9 +190,11 @@
   dcterms:description "The class of all URI hostnames, either domains or IP addresses."@en ;
   skos:exactMatch wd:Q1073408 .
 
-:Host-LocallyServed
-  dcterms:description "The class of all URI hostnames that are locally served, such as domains present in the corresponding DNS zones."@en ;
-  foaf:page <https://www.iana.org/assignments/locally-served-dns-zones/locally-served-dns-zones.xhtml> .
+:Host-Special
+  dcterms:description "The class of all URI hostnames that are special for the corresponding protocols."@en .
+
+:Host-Local
+  dcterms:description "The class of all URI hostnames that are not globally reachable."@en .
 
 :HostDatatype
   dcterms:description "The identifier of a host, using international characters."@en .
@@ -207,11 +209,16 @@
   skos:exactMatch wd:Q32635 , dbr:Domain_name .
 
 :Domain-Special
-  rdfs:subClassOf :Domain ;
+  rdfs:subClassOf :Domain , :Host-Special ;
   dcterms:description "A domain name that is reserved for a special purpose."@en ;
   foaf:page <https://www.iana.org/assignments/special-use-domain-names/special-use-domain-names.xhtml> ;
   foaf:page rfc:6761 ;
   skos:exactMatch dbr:Special-use_domain_name .
+
+:Domain-Local
+  rdfs:subClassOf :Domain , :Host-Local ;
+  dcterms:description "A domain name that is located in the locally-served DNS zones."@en ;
+  foaf:page <https://www.iana.org/assignments/locally-served-dns-zones/locally-served-dns-zones.xhtml> .
 
 :TopLevelDomain
   rdfs:subClassOf :Domain ;
