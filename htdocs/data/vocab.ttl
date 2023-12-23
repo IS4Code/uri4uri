@@ -190,6 +190,10 @@
   dcterms:description "The class of all URI hostnames, either domains or IP addresses."@en ;
   skos:exactMatch wd:Q1073408 .
 
+:Host-LocallyServed
+  dcterms:description "The class of all URI hostnames that are locally served, such as domains present in the corresponding DNS zones."@en ;
+  foaf:page <https://www.iana.org/assignments/locally-served-dns-zones/locally-served-dns-zones.xhtml> .
+
 :HostDatatype
   dcterms:description "The identifier of a host, using international characters."@en .
 

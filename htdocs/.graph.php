@@ -1397,14 +1397,28 @@ class HostTriples extends Triples
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:Domain');
     
     $special_domains = get_special_domains();
-    if($domain_idn !== false && isset($special_domains["$domain_idn."]))
+    $localdns = get_locally_served_dns_zones();
+    if($domain_idn !== false)
     {
-      addIanaRecord($graph, $subject, $special_domains, "$domain_idn.");
-      if(empty($special_types))
+      $special_domains_key = "$domain_idn.";
+      if(isset($special_domains[$special_domains_key]))
       {
-        $special_types = array();
+        addIanaRecord($graph, $subject, $special_domains, $special_domains_key);
+        if(empty($special_types))
+        {
+          $special_types = array();
+        }
+        $special_types[] = 'uriv:Domain-Special';
       }
-      $special_types[] = 'uriv:Domain-Special';
+      if(isset($localdns[$domain_idn]))
+      {
+        addIanaRecord($graph, $subject, $localdns, $domain_idn);
+        if(empty($special_types))
+        {
+          $special_types = array();
+        }
+        $special_types[] = 'uriv:Host-LocallyServed';
+      }
     }
     
     # Super Domains

@@ -328,6 +328,14 @@ function get_special_domains()
   });
 }
 
+function get_locally_served_dns_zones()
+{
+  return get_json_source(__DIR__.'/data/localdns.json', function($cache_file)
+  {
+    return update_iana_records($cache_file, 'locally-served-dns-zones', 'value', false);
+  });
+}
+
 function get_urn_namespaces()
 {
   return get_json_source(__DIR__.'/data/urnns.json', function($cache_file)

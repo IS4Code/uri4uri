@@ -33,7 +33,8 @@ IANARef,p,old,IANA reference
 URIScheme,c,old,URI Scheme
 URISchemeDatatype,d,old,URI Scheme Identifier
 
-Host,c,new,Host 
+Host,c,new,Host
+Host-LocallyServed,c,new,Locally-Served Host
 HostDatatype,d,new,URI Host Identifier
 HostDatatype-Encoded,d,new,URI Host Identifier (ASCII)
 
