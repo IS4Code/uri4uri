@@ -184,3 +184,7 @@ figure figure figure figure figure figure { background-color: #eef; }
   display: inline-block;
   vertical-align: top;
 }
+
+.value-list q {
+  margin-right: 0.5ch;
+}
