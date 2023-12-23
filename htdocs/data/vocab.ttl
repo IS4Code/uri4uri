@@ -220,6 +220,11 @@
   dcterms:description "A domain name that is located in the locally-served DNS zones."@en ;
   foaf:page <https://www.iana.org/assignments/locally-served-dns-zones/locally-served-dns-zones.xhtml> .
 
+:Domain-PublicSuffix
+  rdfs:subClassOf :Domain ;
+  dcterms:description "A domain name that is used as a public suffix for other domains. Also known as a registry controlled domain."@en ;
+  foaf:page <https://publicsuffix.org/> .
+
 :TopLevelDomain
   rdfs:subClassOf :Domain ;
   dcterms:description "A domain that is not a subdomain of any other."@en ;
@@ -314,6 +319,7 @@
   a owl:DatatypeProperty ;
   schema:domainIncludes :Domain ;
   rdfs:range xsd:boolean ;
+  foaf:page <https://hstspreload.org/> ;
   dcterms:description "Specifies whether HTTP Strict Transport Security (HSTS) is enabled for this domain."@en .
 
 

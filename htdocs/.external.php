@@ -570,6 +570,55 @@ function get_hsts_domains()
   });
 }
 
+function get_public_domain_suffixes()
+{
+  return get_json_source(__DIR__.'/data/pubdomains.json', function($cache_file)
+  {
+    $source = 'https://publicsuffix.org/list/public_suffix_list.dat';
+    
+    $records = array();
+    $records['#source'] = $source;
+    
+    $fp = fopen($source, 'r', false, get_stream_context());
+    
+    while(($l = fgets($fp)) !== false)
+    {
+      $name = trim($l);
+      if(empty($name) || str_starts_with($name, '//')) continue;
+      
+      if(str_starts_with($name, '!'))
+      {
+        $ispublic = false;
+        $name = substr($name, 1);
+      }else{
+        $ispublic = true;
+      }
+      
+      $table = &$records;
+      $parts = explode('.', $name);
+      $len = count($parts);
+      for($i = $len - 1; $i >= 0; $i--)
+      {
+        $key = $parts[$i];
+        if(!isset($table[$key]))
+        {
+          $table[$key] = array();
+        }
+        $table = &$table[$key];
+      }
+      $table[''] = $ispublic ? 1 : 0;
+    }
+    
+    fclose($fp);
+    
+    if(file_exists($cache_file))
+    {
+      file_put_contents($cache_file, json_encode($records, JSON_UNESCAPED_SLASHES));
+    }
+    return $records;
+  });
+}
+
 function get_rdap_record($type, $object)
 {
   $url = "https://rdap.org/$type/$object";

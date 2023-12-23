@@ -42,6 +42,7 @@ HostDatatype-Encoded,d,new,URI Host Identifier (ASCII)
 Domain,c,old,Internet Domain
 Domain-Special,c,new,Special-Use Domain
 Domain-Local,c,new,Locally-Served DNS Zone Domain
+Domain-PublicSuffix,c,new,Public Domain Suffix
 TopLevelDomain,c,old,Top-Level Domain
 TopLevelDomain-CountryCode,c,old,Country Top-Level Domain
 TopLevelDomain-Generic,c,old,Generic Top-Level Domain

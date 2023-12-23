@@ -1158,7 +1158,7 @@ class HostTriples extends Triples
 {
   protected $link_old = true;
   protected $entity_type = 'uriv:Host'; 
-  protected $entity_types = array('uriv:Host', 'uriv:Host-Special', 'uriv:Host-Local', 'uriv:IP', 'uriv:IPv4', 'uriv:IPv6', 'uriv:IP-Future', 'uriv:IP-Special', 'uriv:IP-Private', 'uriv:IP-Reserved', 'uriv:Domain', 'uriv:Domain-Special', 'uriv:Domain-Local', 'uriv:TopLevelDomain', 'uriv:TopLevelDomain-CountryCode', 'uriv:TopLevelDomain-Generic', 'uriv:TopLevelDomain-GenericRestricted', 'uriv:TopLevelDomain-Infrastructure', 'uriv:TopLevelDomain-Sponsored', 'uriv:TopLevelDomain-Proposed', 'uriv:TopLevelDomain-Test');
+  protected $entity_types = array('uriv:Host', 'uriv:Host-Special', 'uriv:Host-Local', 'uriv:IP', 'uriv:IPv4', 'uriv:IPv6', 'uriv:IP-Future', 'uriv:IP-Special', 'uriv:IP-Private', 'uriv:IP-Reserved', 'uriv:Domain', 'uriv:Domain-Special', 'uriv:Domain-Local', 'uriv:Domain-PublicSuffix', 'uriv:TopLevelDomain', 'uriv:TopLevelDomain-CountryCode', 'uriv:TopLevelDomain-Generic', 'uriv:TopLevelDomain-GenericRestricted', 'uriv:TopLevelDomain-Infrastructure', 'uriv:TopLevelDomain-Sponsored', 'uriv:TopLevelDomain-Proposed', 'uriv:TopLevelDomain-Test');
   protected $entity_notation_types = array('uriv:HostDatatype', 'uriv:HostDatatype-Encoded');
   
   protected function source()
@@ -1376,73 +1376,127 @@ class HostTriples extends Triples
     return $subject;
   }
   
-  protected function addDomainHsts($graph, $subject, $domain, $domain_idn, $queries, $registered)
+  protected function addDomainListsInfo($graph, $subject, $domain, $domain_idn, $queries, $registered)
   {
-    if($domain_idn === false)
+    if($domain_idn !== false)
     {
-      return;
-    }          
-    $domain_keys = explode('.', $domain_idn);
-    $hsts = get_hsts_domains();
-    $source = @$hsts['#source'];
-    $keys_len = count($domain_keys);
-    $hsts_inherited_flags = 0;
-    $hsts_flags = 0;
-    for($i = $keys_len - 1; $i >= 0; $i--)
-    {
-      $domain_key = $domain_keys[$i];
-      if(!isset($hsts[$domain_key]))
+      $domain_keys = explode('.', $domain_idn);
+      $keys_len = count($domain_keys);
+      
+      $hsts = get_hsts_domains();
+      $hsts_source = @$hsts['#source'];
+      
+      $hsts_inherited_flags = 0;
+      $hsts_flags = 0;
+      for($i = $keys_len - 1; $i >= 0; $i--)
       {
-        $hsts = null;
-        $hsts_flags = 0;
-        break;
-      }
-      $hsts = &$hsts[$domain_key];
-      if(isset($hsts['']))
-      {
-        $hsts_flags = $hsts[''];
-        if(($hsts_flags & 1) !== 0) // include_subdomains
+        $domain_key = $domain_keys[$i];
+        if(!isset($hsts[$domain_key]))
         {
-          $hsts_inherited_flags |= $hsts_flags;
+          $hsts = null;
+          $hsts_flags = 0;
+          break;
         }
-      }else{
-        $hsts_flags = 0;
+        $hsts = &$hsts[$domain_key];
+        if(isset($hsts['']))
+        {
+          $hsts_flags = $hsts[''];
+          if(($hsts_flags & 1) !== 0) // include_subdomains
+          {
+            $hsts_inherited_flags |= $hsts_flags;
+          }
+        }else{
+          $hsts_flags = 0;
+        }
       }
-    }
-    $hsts_flags |= $hsts_inherited_flags;
-    if(($hsts_flags & 2) !== 0) // force-https
-    {
-      $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'true', 'xsd:boolean');
-    }else if($registered)
-    {
-      // Not enabled for old TLDs or special-use domains
-      $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'false', 'xsd:boolean');
-    }
-    if(!empty($hsts) || $hsts_flags !== 0)
-    {
-      if(!empty($source))
+      $hsts_flags |= $hsts_inherited_flags;
+      if(($hsts_flags & 2) !== 0) // force-https
       {
-        $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $source);
-        $graph->addCompressedTriple($source, 'rdf:type', 'foaf:Document');
+        $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'true', 'xsd:boolean');
+      }else if($registered)
+      {
+        // Not enabled for old TLDs or special-use domains
+        $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'false', 'xsd:boolean');
+      }
+      if(!empty($hsts) || $hsts_flags !== 0)
+      {
+        if(!empty($hsts_source))
+        {
+          $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $hsts_source);
+          $graph->addCompressedTriple($hsts_source, 'rdf:type', 'foaf:Document');
+        }
       }
     }
-    if(!empty($hsts) && $queries)
+    
+    if($domain !== false)
     {
-      $subdomains = array_keys($hsts);
+      $domain_keys = explode('.', $domain);
+      $keys_len = count($domain_keys);
+      
+      $public = get_public_domain_suffixes();
+      $public_source = @$public['#source'];
+      
+      $public_flags = 0;
+      for($i = $keys_len - 1; $i >= 0; $i--)
+      {
+        $domain_key = $domain_keys[$i];
+        if($i === 0 && isset($public['*']))
+        {
+          // Last domain may be a wildcard
+          $public_flags = $public['*'][''];
+        }
+        if(!isset($public[$domain_key]))
+        {
+          $public = null;
+          break;
+        }
+        $public = &$public[$domain_key];
+        if($i === 0 && isset($public['']))
+        {
+          $public_flags = $public[''];
+        }
+      }
+      if(!empty($public) || $public_flags !== 0)
+      {
+        $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:Domain-PublicSuffix');
+        if(!empty($public_source))
+        {
+          $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $public_source);
+          $graph->addCompressedTriple($public_source, 'rdf:type', 'foaf:Document');
+        }
+      }
+    }
+    
+    if($queries)
+    {
+      $subdomains = array();
+      if(!empty($hsts))
+      {
+        foreach($hsts as $subdomain => $_)
+        {
+          if(!empty($subdomain)) $subdomains[$this->normalizeId("$subdomain.$domain_idn")] = true;
+        }
+      }
+      if(!empty($public))
+      {
+        foreach($public as $subdomain => $_)
+        {
+          if(!empty($subdomain)) $subdomains[$this->normalizeId("$subdomain.$domain")] = true;
+        }
+      }
+    
+      $subdomains = array_keys($subdomains);
       shuffle($subdomains);
       $count = 0;
       $max_count = rand(200, 400);
       foreach($subdomains as $subdomain)
       {
-        if($subdomain !== '')
+        if(++$count >= $max_count)
         {
-          if(++$count >= $max_count)
-          {
-            break;
-          }
-          $inner_subject = 'host:'.encodeIdentifier($this->normalizeId("$subdomain.$domain_idn"));
-          $graph->addCompressedTriple($subject, 'uriv:subDom', $inner_subject);
+          break;
         }
+        $inner_subject = 'host:'.encodeIdentifier($subdomain);
+        $graph->addCompressedTriple($subject, 'uriv:subDom', $inner_subject);
       }
     }
   }
@@ -1476,7 +1530,7 @@ class HostTriples extends Triples
       }
     }
     
-    # Super Domains
+    # Sub-domains
     if(strpos($domain, ".") !== false)
     {
       if($queries && $domain_idn !== false)
@@ -1523,6 +1577,8 @@ class HostTriples extends Triples
         $this->queryRdap($graph, $subject, 'domain', $domain_idn);
       }
       
+      $this->addDomainListsInfo($graph, $subject, $domain, $domain_idn, $queries, isset($special_domains["$domain_idn."]));
+      
       list($domain_name, $domain) = explode('.', $domain, 2);
       $inner_subject = $this->add($graph, $domain, false, $special_types, true);
       $graph->addCompressedTriple($inner_subject, 'uriv:subDom', $subject);
@@ -1533,8 +1589,6 @@ class HostTriples extends Triples
           $graph->addCompressedTriple($subject, 'rdf:type', $special_type);
         }
       }
-      
-      $this->addDomainHsts($graph, $subject, $domain, $domain_idn, $queries, isset($special_domains["$domain_idn."]));
       
       return $subject;
     }
@@ -1570,7 +1624,7 @@ class HostTriples extends Triples
       $graph->addCompressedTriple("$subject#sponsor", 'rdfs:label', $tld['sponsor'], 'xsd:string');
     }
     
-    $this->addDomainHsts($graph, $subject, $domain, $domain_idn, $queries, isset($tlds[$domain_idn]) || isset($special_domains["$domain_idn."]));
+    $this->addDomainListsInfo($graph, $subject, $domain, $domain_idn, $queries, isset($tlds[$domain_idn]) || isset($special_domains["$domain_idn."]));
     
     if(!$queries || $domain_idn === false) return $subject;
     
