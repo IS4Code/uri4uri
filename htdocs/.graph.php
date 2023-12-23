@@ -1158,7 +1158,7 @@ class HostTriples extends Triples
 {
   protected $link_old = true;
   protected $entity_type = 'uriv:Host'; 
-  protected $entity_types = array('uriv:Host', 'uriv:IP', 'uriv:IPv4', 'uriv:IPv6', 'uriv:IP-Future', 'uriv:Domain', 'uriv:Domain-Special', 'uriv:TopLevelDomain', 'uriv:TopLevelDomain-CountryCode', 'uriv:TopLevelDomain-Generic', 'uriv:TopLevelDomain-GenericRestricted', 'uriv:TopLevelDomain-Infrastructure', 'uriv:TopLevelDomain-Sponsored', 'uriv:TopLevelDomain-Proposed', 'uriv:TopLevelDomain-Test');
+  protected $entity_types = array('uriv:Host', 'uriv:Host-Special', 'uriv:Host-Local', 'uriv:IP', 'uriv:IPv4', 'uriv:IPv6', 'uriv:IP-Future', 'uriv:IP-Special', 'uriv:IP-Private', 'uriv:IP-Reserved', 'uriv:Domain', 'uriv:Domain-Special', 'uriv:Domain-Local', 'uriv:TopLevelDomain', 'uriv:TopLevelDomain-CountryCode', 'uriv:TopLevelDomain-Generic', 'uriv:TopLevelDomain-GenericRestricted', 'uriv:TopLevelDomain-Infrastructure', 'uriv:TopLevelDomain-Sponsored', 'uriv:TopLevelDomain-Proposed', 'uriv:TopLevelDomain-Test');
   protected $entity_notation_types = array('uriv:HostDatatype', 'uriv:HostDatatype-Encoded');
   
   protected function source()
