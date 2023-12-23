@@ -1072,7 +1072,10 @@ function addIanaRecord($graph, $subject, $records, $key, $descriptions = null)
   {
     $graph->addCompressedTriple($subject, 'rdfs:label', $info['description'], 'literal', 'en');
   }
-  if(isset($info['type']))
+  if(isset($info['removed']) && new DateTime($info['removed']) < new DateTime())
+  {
+    $graph->addCompressedTriple($subject, 'vs:term_status', 'archaic', 'literal');
+  }else if(isset($info['type']))
   {
     $graph->addCompressedTriple($subject, 'vs:term_status', $tmap[$info['type']], 'literal');
   }else{
@@ -1082,6 +1085,10 @@ function addIanaRecord($graph, $subject, $records, $key, $descriptions = null)
   {
     $graph->addCompressedTriple($subject, 'rdfs:seeAlso', $info['template']);
     $graph->addCompressedTriple($info['template'], 'rdf:type', 'foaf:Document');
+  }
+  if(isset($info['created']))
+  {
+    $graph->addCompressedTriple($subject, 'dcterms:created', $info['created'], xsdDateType($info['created']));
   }
   if(isset($info['date']))
   {

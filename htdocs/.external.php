@@ -207,6 +207,16 @@ function update_iana_records($file, $assignments, $id_element, $combine_id)
         $record_data['number'] = trim($item->wholeText);
         break;
       }
+      foreach($xpath->query('reg:allocation/text()', $record) as $item)
+      {
+        $record_data['created'] = trim($item->wholeText);
+        break;
+      }
+      foreach($xpath->query('reg:termination/text()', $record) as $item)
+      {
+        $record_data['removed'] = trim($item->wholeText);
+        break;
+      }
       $refs = array();
       foreach($xpath->query('.//reg:xref[not(parent::reg:template)]', $record) as $xref)
       {
