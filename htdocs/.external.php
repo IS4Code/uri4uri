@@ -217,6 +217,11 @@ function update_iana_records($file, $assignments, $id_element, $combine_id)
         $record_data['removed'] = trim($item->wholeText);
         break;
       }
+      foreach($xpath->query('reg:well-known/reg:xref', $record) as $item)
+      {
+        $record_data['well-known'] = true;
+        break;
+      }
       $refs = array();
       foreach($xpath->query('.//reg:xref[not(parent::reg:template)]', $record) as $xref)
       {

@@ -792,7 +792,7 @@ class URITriples extends Triples
       $graph->addCompressedTriple($uri, 'uriv:identifiedBy', $subject);
       $graph->addCompressedTriple($subject, 'uriv:scheme', self::addForType('scheme', $graph, $b['scheme']));
       
-      if($b['scheme'] == 'http' || $b['scheme'] == 'https')
+      if(!@empty(get_schemes()[$b['scheme']]['well-known']))
       {
         if(!empty($b['host']))
         {
