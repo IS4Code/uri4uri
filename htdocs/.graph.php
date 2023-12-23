@@ -1384,6 +1384,7 @@ class HostTriples extends Triples
     }          
     $domain_keys = explode('.', $domain_idn);
     $hsts = get_hsts_domains();
+    $source = @$hsts['#source'];
     $keys_len = count($domain_keys);
     $hsts_inherited_flags = 0;
     $hsts_flags = 0;
@@ -1416,6 +1417,14 @@ class HostTriples extends Triples
     {
       // Not enabled for old TLDs or special-use domains
       $graph->addCompressedTriple($subject, 'uriv:hstsEnabled', 'false', 'xsd:boolean');
+    }
+    if(!empty($hsts) || $hsts_flags !== 0)
+    {
+      if(!empty($source))
+      {
+        $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $source);
+        $graph->addCompressedTriple($source, 'rdf:type', 'foaf:Document');
+      }
     }
     if(!empty($hsts) && $queries)
     {

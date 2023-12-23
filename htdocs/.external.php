@@ -515,6 +515,7 @@ function get_hsts_domains()
     $source = 'https://chromium.googlesource.com/chromium/src/+/main/net/http/transport_security_state_static.json?format=TEXT';
     
     $records = array();
+    $records['#source'] = $source;
     
     $fp = fopen($source, 'r', false, get_stream_context());
     stream_filter_append($fp, 'convert.base64-decode');
