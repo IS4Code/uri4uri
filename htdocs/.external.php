@@ -222,6 +222,15 @@ function update_iana_records($file, $assignments, $id_element, $combine_id)
         $record_data['well-known'] = true;
         break;
       }
+      $fragment = array();
+      foreach($xpath->query('reg:fragment/descendant::text()', $record) as $item)
+      {
+        $fragment[] = trim($item->wholeText);
+      }
+      if(!empty($fragment))
+      {
+        $record_data['fragment'] = implode('\n', $fragment);
+      }
       $refs = array();
       foreach($xpath->query('.//reg:xref[not(parent::reg:template)]', $record) as $xref)
       {
@@ -332,6 +341,14 @@ function get_mime_types()
   return get_json_source(__DIR__.'/data/mime.json', function($cache_file)
   {
     return update_iana_records($cache_file, 'media-types', 'name', true);
+  });
+}
+
+function get_mime_suffixes()
+{
+  return get_json_source(__DIR__.'/data/mimeplus.json', function($cache_file)
+  {
+    return update_iana_records($cache_file, 'media-type-structured-suffix', 'suffix', false);
   });
 }
 

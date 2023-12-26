@@ -1048,6 +1048,32 @@ class FieldTriples extends Triples
   }
 }
 
+function addIanaRegistry($graph, $subject, $records)
+{
+  if(isset($records['#source']))
+  {
+    $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $records['#source']);
+    $graph->addCompressedTriple($records['#source'], 'rdf:type', 'foaf:Document');
+    if(isset($info['registry']))
+    {
+      $registry_id = $info['registry'];
+      if(is_string($registry_id))
+      {
+        $registry_name = $registry_id;
+      }else if(isset($records['#registry']))
+      {
+        $registry_name = $records['#registry'][$registry_id];
+      }
+      if(!empty($registry_name))
+      {
+        $registry = $records['#source'].'#table-'.$registry_name;
+        $graph->addCompressedTriple($subject, 'vs:moreinfo', $registry);
+        $graph->addCompressedTriple($registry, 'rdf:type', 'foaf:Document');
+      }
+    }
+  }
+}
+
 function addIanaRecord($graph, $subject, $records, $key, $descriptions = null)
 {
   $info = @$records[$key];
@@ -1128,28 +1154,7 @@ function addIanaRecord($graph, $subject, $records, $key, $descriptions = null)
     }
   }
   
-  if(isset($records['#source']))
-  {
-    $graph->addCompressedTriple($subject, 'prov:wasDerivedFrom', $records['#source']);
-    $graph->addCompressedTriple($records['#source'], 'rdf:type', 'foaf:Document');
-    if(isset($info['registry']))
-    {
-      $registry_id = $info['registry'];
-      if(is_string($registry_id))
-      {
-        $registry_name = $registry_id;
-      }else if(isset($records['#registry']))
-      {
-        $registry_name = $records['#registry'][$registry_id];
-      }
-      if(!empty($registry_name))
-      {
-        $registry = $records['#source'].'#table-'.$registry_name;
-        $graph->addCompressedTriple($subject, 'vs:moreinfo', $registry);
-        $graph->addCompressedTriple($registry, 'rdf:type', 'foaf:Document');
-      }
-    }
-  }
+  addIanaRegistry($graph, $subject, $records);
   
   return $info;
 }
@@ -1816,14 +1821,53 @@ class MIMETriples extends Triples
     if(!empty($suffix_type))
     {
       $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:Mimetype-Structured');
-      static $suffix_map = array(
-        'ber' => 'application/ber-stream',
-        'der' => 'application/der-stream',
-        'wbxml' => 'application/vnd.wap.wbxml'
-      );
-      $base_mime = @$suffix_map[$suffix_type] ?? "application/$suffix_type";
-      $base_subject = self::addForType('mime', $graph, $base_mime);
-      $graph->addCompressedTriple($subject, 'dbp:extendedFrom', $base_subject);
+      
+      $suffixes = get_mime_suffixes();
+      $base_mime = null;
+      if(isset($suffixes["+$suffix_type"]))
+      {
+        $suffix_data = &$suffixes["+$suffix_type"];
+        if(preg_match('/"(application\/[^"]+)"/', $suffix_data['fragment'], $matches))
+        {
+          $base_mime = $matches[1];
+        }
+        addIanaRegistry($graph, $subject, $suffixes);
+      }
+      if(empty($base_mime))
+      {
+        static $suffix_map = array(
+          'ber' => 'application/ber-stream',
+          'der' => 'application/der-stream'
+        );
+        if(isset($suffix_map[$suffix_type]))
+        {
+          $base_mime = $suffix_map[$suffix_type];
+        }else{
+          $base_mime = "application/$suffix_type";
+          $mime_types = get_mime_types();
+          if(!isset($mime_types[$base_mime]))
+          {
+            $base_mime = "application/vnd.$suffix_type";
+            if(!isset($mime_types[$base_mime]))
+            {
+              $base_mime = "application/prs.$suffix_type";
+              if(!isset($mime_types[$base_mime]))
+              {
+                $base_mime = null;
+              }
+            }
+          }
+        }
+      }
+      if($base_mime === $bare_mime)
+      {
+        $base_mime = null;
+      }
+      if(!empty($base_mime))
+      {
+        $base_subject = self::addForType('mime', $graph, $base_mime);
+        $graph->addCompressedTriple($subject, 'dbp:extendedFrom', $base_subject);
+      }
     }
     
     if(!$queries) return $subject;
