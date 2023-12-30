@@ -651,6 +651,7 @@ function get_whois_record($server, $object)
     fputs($socket, $object."\r\n");
     $content = stream_get_contents($socket); 
     fclose($socket);
+    if(str_starts_with($context, "Your connection limit exceeded.")) return null;
     return $content;
   }
 }
