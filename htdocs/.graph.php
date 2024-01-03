@@ -185,6 +185,7 @@ abstract class Triples
       {
         $graph->addCompressedTriple($subject, 'rdf:type', $triples->entity_type);
       }
+      $triples->addBaseTypes($graph, $subject);
       $graph->addCompressedTriple($subject, 'rdfs:label', $triples->label($id), 'xsd:string');
       $graph->addCompressedTriple($subject, 'rdfs:isDefinedBy', $ontology);
     }
