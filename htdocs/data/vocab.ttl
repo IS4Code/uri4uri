@@ -178,7 +178,7 @@
 :URIScheme
   dcterms:description "A URI scheme defines the structure and interpretation of URIs using it."@en ;
   foaf:page <https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml> ;
-  skos:exactMatch wd:Q37071 .
+  skos:exactMatch wd:Q37071 , <http://webconcepts.info/concepts/uri-scheme/> .
 
 
 :URISchemeDatatype
@@ -401,7 +401,7 @@
   dcterms:description "A media type representing a format or a collection of related formats."@en ;
   foaf:page <https://www.iana.org/assignments/media-types/media-types.xhtml> ;
   foaf:page rfc:2046 ;
-  skos:exactMatch wd:Q1667978 , dbr:Media_type .
+  skos:exactMatch wd:Q1667978 , dbr:Media_type , <http://webconcepts.info/concepts/media-type/> .
 
 :Mimetype-Discrete
   rdfs:subClassOf :Mimetype ;
@@ -474,7 +474,7 @@
   dcterms:description "A namespace used by a Uniform Resource Identifier."@en ;
   foaf:page <https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml> ;
   foaf:page rfc:8141 ;
-  skos:exactMatch wd:Q69647581 .
+  skos:exactMatch wd:Q69647581 , <http://webconcepts.info/concepts/urn-namespace/> .
 
 :URNNamespace-Formal
   rdfs:subClassOf :URNNamespace ;
@@ -497,7 +497,8 @@
 :WellKnownURISuffix
   dcterms:description "The identifier of a well-known resource."@en ;
   foaf:page <https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml> ;
-  foaf:page rfc:8615 .
+  foaf:page rfc:8615 ;
+  skos:exactMatch <http://webconcepts.info/concepts/well-known-uri/> .
 
 
 :WellKnownURISuffixDatatype
