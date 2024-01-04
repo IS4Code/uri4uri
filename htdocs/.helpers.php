@@ -40,6 +40,11 @@ function urlencode_minimal($str)
   return urlencode_chars($str, "^!$&-;=@A-Z_a-z~\u{00A0}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFEF}");
 }
 
+function urlencode_query($str)
+{
+  return urlencode_chars($str, "^!$'-;?=@A-Z_a-z~\u{00A0}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFEF}");
+}
+
 function urlencode_utf8($str)
 {
   return urlencode_chars($str, "\u{0080}-\u{FFFF}");

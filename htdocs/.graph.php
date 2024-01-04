@@ -1808,6 +1808,8 @@ class MIMETriples extends Triples
     $graph->addCompressedTriple($subject, 'rdfs:label', $this->label($mime), 'xsd:string');
     $graph->addCompressedTriple($subject, 'skos:notation', $mime, 'uriv:MimetypeDatatype');
     
+    $content_uri_query = array();
+    
     $implied = false;
     @list($bare_mime, $param_part) = explode(';', $mime, 2);
     if(!empty($param_part))
@@ -1822,10 +1824,36 @@ class MIMETriples extends Triples
       }
       $mime_params = self::addForType('part', $graph, $param_part);
       $graph->addCompressedTriple($subject, 'uriv:mimeParams', $mime_params);
+      
+      $param_parts = preg_split('/"[^"]*"(*SKIP)(*F)|;/', $param_part);
+      foreach($param_parts as $kv)
+      {
+        if(strpos($kv, '=') !== false)
+        {
+          list($key, $value) = explode('=', $kv, 2);
+          $content_uri_query[] = urlencode_query($key).'='.urlencode_query(trim($value, '"'));
+        }else{
+          $content_uri_query[] = urlencode_query($kv);
+        }
+      }
     }else{
       $mime_types = get_mime_types();
       addExternalLinks($graph, $subject, $mime_types, $bare_mime, 'media-type');
     }
+    
+    $content_uri = 'content-type:'.urlencode_minimal($bare_mime);
+    if(!empty($content_uri_query))
+    {
+      $content_uri .= '?'.implode('&', $content_uri_query);
+    }
+    $graph->addCompressedTriple($subject, 'owl:sameAs', $content_uri);
+    $uri_triples = self::map()['uri'];
+    $content_uri_id = 'uri:'.encodeIdentifier($content_uri);
+    $uri_triples->addBaseTypes($graph, $content_uri_id);
+    $graph->addCompressedTriple($content_uri_id, 'rdf:type', 'uriv:URI');
+    $graph->addCompressedTriple($content_uri_id, 'rdfs:label', $uri_triples->label($content_uri), 'xsd:string');
+    $graph->addCompressedTriple($content_uri_id, 'rdfs:isDefinedBy', 'uri:');
+    $graph->addCompressedTriple($content_uri, 'uriv:identifiedBy', $content_uri_id);
     
     @list(, $suffix_type) = explode('+', $bare_mime, 2);
     if(!empty($suffix_type))
