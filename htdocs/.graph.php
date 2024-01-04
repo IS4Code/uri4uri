@@ -41,7 +41,7 @@ function initGraph()
   $graph->ns('wdt', 'http://www.wikidata.org/prop/direct/');
   $graph->ns('rfc', 'https://www.rfc-editor.org/info/rfc');
   $graph->ns('xyz', 'http://sparql.xyz/facade-x/data/');
-  $graph->ns('webc', 'https://webconcepts.info/concepts/');
+  $graph->ns('webc', 'http://webconcepts.info/concepts/');
   
   return $graph;
 }
@@ -1161,6 +1161,14 @@ function addIanaRecord($graph, $subject, $records, $key, $descriptions = null)
   return $info;
 }
 
+function addExternalLinks($graph, $subject, $records, $id, $webc_prefix)
+{
+  if(!empty(addIanaRecord($graph, $subject, $records, $id)))
+  {
+    $graph->addCompressedTriple($subject, 'owl:sameAs', "webc:$webc_prefix/".encodeIdentifier($id));
+  }
+}
+
 class HostTriples extends Triples
 {
   protected $link_old = true;
@@ -1816,9 +1824,7 @@ class MIMETriples extends Triples
       $graph->addCompressedTriple($subject, 'uriv:mimeParams', $mime_params);
     }else{
       $mime_types = get_mime_types();
-      addIanaRecord($graph, $subject, $mime_types, $bare_mime);
-      
-      $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:media-type/'.encodeIdentifier($mime));
+      addExternalLinks($graph, $subject, $mime_types, $bare_mime, 'media-type');
     }
     
     @list(, $suffix_type) = explode('+', $bare_mime, 2);
@@ -2127,9 +2133,7 @@ class SchemeTriples extends Triples
     $graph->addCompressedTriple($subject, 'skos:notation', $scheme, 'uriv:URISchemeDatatype');
   
     $schemes = get_schemes();
-    addIanaRecord($graph, $subject, $schemes, $scheme);
-    
-    $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:uri-scheme/'.encodeIdentifier($scheme));
+    addExternalLinks($graph, $subject, $schemes, $scheme, 'uri-scheme');
     
     $dot = strpos($scheme, '.');
     if($dot !== false)
@@ -2236,9 +2240,7 @@ class URNNamespaceTriples extends Triples
     $graph->addCompressedTriple($subject, 'skos:notation', $ns, 'uriv:URNNamespaceDatatype');
   
     $namespaces = get_urn_namespaces();
-    addIanaRecord($graph, $subject, $namespaces, $ns);
-    
-    $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:urn-namespace/'.encodeIdentifier($ns));
+    addExternalLinks($graph, $subject, $namespaces, $ns, 'urn-namespace');
     
     if(!$queries) return $subject;
     
@@ -2289,9 +2291,7 @@ class WellknownTriples extends Triples
     $graph->addCompressedTriple($subject, 'skos:notation', $suffix, 'uriv:WellKnownURISuffixDatatype');
   
     $wellknown = get_wellknown_uris();
-    addIanaRecord($graph, $subject, $wellknown, $suffix);
-    
-    $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:well-known-uri/'.encodeIdentifier($suffix));
+    addExternalLinks($graph, $subject, $wellknown, $suffix, 'well-known-uri');
     
     return $subject;
   }
