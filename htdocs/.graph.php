@@ -41,6 +41,7 @@ function initGraph()
   $graph->ns('wdt', 'http://www.wikidata.org/prop/direct/');
   $graph->ns('rfc', 'https://www.rfc-editor.org/info/rfc');
   $graph->ns('xyz', 'http://sparql.xyz/facade-x/data/');
+  $graph->ns('webc', 'https://webconcepts.info/concepts/');
   
   return $graph;
 }
@@ -1816,6 +1817,8 @@ class MIMETriples extends Triples
     }else{
       $mime_types = get_mime_types();
       addIanaRecord($graph, $subject, $mime_types, $bare_mime);
+      
+      $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:media-type/'.encodeIdentifier($mime));
     }
     
     @list(, $suffix_type) = explode('+', $bare_mime, 2);
@@ -2103,8 +2106,6 @@ class SchemeTriples extends Triples
   protected $entity_types = array('uriv:URIScheme');
   protected $entity_notation_types = array('uriv:URISchemeDatatype');
 
-
-  
   protected function source()
   {
     return get_schemes();
@@ -2127,6 +2128,8 @@ class SchemeTriples extends Triples
   
     $schemes = get_schemes();
     addIanaRecord($graph, $subject, $schemes, $scheme);
+    
+    $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:uri-scheme/'.encodeIdentifier($scheme));
     
     if(isset(get_services()[$scheme]))
     {
@@ -2211,6 +2214,8 @@ class URNNamespaceTriples extends Triples
     $namespaces = get_urn_namespaces();
     addIanaRecord($graph, $subject, $namespaces, $ns);
     
+    $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:urn-namespace/'.encodeIdentifier($ns));
+    
     if(!$queries) return $subject;
     
     $subject_node = "<{$this->URI($graph->expandURI($subject))}>";
@@ -2261,6 +2266,8 @@ class WellknownTriples extends Triples
   
     $wellknown = get_wellknown_uris();
     addIanaRecord($graph, $subject, $wellknown, $suffix);
+    
+    $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:well-known-uri/'.encodeIdentifier($suffix));
     
     return $subject;
   }
