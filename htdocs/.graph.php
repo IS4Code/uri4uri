@@ -2131,6 +2131,30 @@ class SchemeTriples extends Triples
     
     $graph->addCompressedTriple($subject, 'owl:sameAs', 'webc:uri-scheme/'.encodeIdentifier($scheme));
     
+    $dot = strpos($scheme, '.');
+    if($dot !== false)
+    {
+      $tld = substr($scheme, 0, $dot);
+      $tld = idn_to_utf8($tld, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46);
+      if($tld !== false)
+      {
+        $tlds = get_tlds();
+        if(isset($tlds[$tld]))
+        {
+          $plus = strpos($scheme, '+');
+          if($plus !== false)
+          {
+            $scheme_base = substr($scheme, 0, $plus);
+          }else{
+            $scheme_base = $scheme;
+          }
+          $host = implode('.', array_reverse(explode('.', $scheme_base)));
+          $host = self::addForType('host', $graph, $host);
+          $graph->addCompressedTriple($subject, 'rdfs:seeAlso', $host);
+        }
+      }
+    }
+    
     if(isset(get_services()[$scheme]))
     {
       $service = self::addForType('service', $graph, $scheme);
