@@ -34,6 +34,7 @@ function initGraph()
   $graph->ns('dbp', 'http://dbpedia.org/property/');
   $graph->ns('prov', 'http://www.w3.org/ns/prov#');
   $graph->ns('vann', 'http://purl.org/vocab/vann/');
+  $graph->ns('voaf', 'http://purl.org/vocommons/voaf#');
   $graph->ns('schema', 'http://schema.org/');
   $graph->ns('void', 'http://rdfs.org/ns/void#');
   $graph->ns('hydra', 'http://www.w3.org/ns/hydra/core#');
@@ -473,6 +474,7 @@ function graphVocab($id)
   $subject = 'uriv:';
   addBoilerplateTriples($graph, $subject, "URI Vocabulary", true);
   $graph->addCompressedTriple($subject, 'rdf:type', 'owl:Ontology');
+  $graph->addCompressedTriple($subject, 'rdf:type', 'voaf:Vocabulary');
   $graph->addCompressedTriple($subject, 'dcterms:title', "URI Vocabulary", 'literal', 'en');
   $graph->addCompressedTriple($subject, 'dcterms:replaces', 'olduriv:');
   $graph->addCompressedTriple($subject, 'owl:priorVersion', 'olduriv:');
@@ -669,6 +671,9 @@ function addVocabTriples($graph)
     if($status === 'old-deprecated')
     {
       $graph->addCompressedTriple($term, 'owl:deprecated', 'true', 'xsd:boolean');
+      $graph->addCompressedTriple($term, 'vs:term_status', 'deprecated', 'literal');
+    }else{
+      $graph->addCompressedTriple($term, 'vs:term_status', 'stable', 'literal');
     }
     if($status === 'old' || $status === 'old-deprecated')
     {

@@ -127,3 +127,5 @@ prov:wasDerivedFrom,p,derived from
 
 vann:preferredNamespacePrefix,p,preferred prefix
 vann:preferredNamespaceUri,p,preferred namespace
+
+voaf:Vocabulary,c,Vocabulary
