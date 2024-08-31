@@ -326,7 +326,7 @@
   a owl:ObjectProperty ;
   schema:domainIncludes :Domain ;
   schema:rangeIncludes :Domain-PublicSuffix ;
-  dcterms:description "Links to the domain that servers as a public suffix or registry for this domain."@en .
+  dcterms:description "Links to the domain that serves as a public suffix or registry for this domain."@en .
 
 
 :IP
