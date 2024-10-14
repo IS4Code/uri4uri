@@ -19,8 +19,8 @@ if(!function_exists('str_ends_with'))
 
 function gethostbynamel6($host)
 {
-  $list = dns_get_record($host, DNS_AAAA);
-  if(count($list) < 1) return false;
+  $list = @dns_get_record($host, DNS_AAAA);
+  if(!$list || count($list) < 1) return false;
   return array_map(function($elem)
   {
     return @$elem['ipv6'];
