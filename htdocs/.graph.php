@@ -2401,7 +2401,7 @@ class PortTriples extends Triples
     $protocol_values = array();
     foreach(get_protocols() as $protocol)
     {
-      if(is_array($protocol))
+      if(is_array($protocol) && !empty($protocol['id']))
       {
         $name = strtolower($protocol['id']);
         $protocol_values[] = "\"{$this->STR($name)}\"";
