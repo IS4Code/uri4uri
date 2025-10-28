@@ -636,9 +636,141 @@ function get_public_domain_suffixes()
   });
 }
 
+function regexEscapeChar($ord)
+{
+  if($ord < 0x80)
+  {
+    $chr = chr($ord);
+    if(strlen(json_encode($chr, JSON_UNESCAPED_SLASHES)) <= 3)
+    {
+      return preg_quote($chr);
+    }
+  }
+  return '\x'.dechex($ord);
+}
+
+function get_rdap_registry($type)
+{
+  return get_json_source(__DIR__."/data/rdap_$type.json", function($cache_file)
+  {
+    $source = "https://data.iana.org/rdap/$type.json";
+    $data = json_decode(file_get_contents($source, false, get_stream_context()), true);
+    
+    $records = array();
+    foreach($data['services'] as &$service)
+    {
+      foreach($service[0] as $id)
+      {
+        $endpoints = $service[1];
+        
+        $endpoint = $endpoints[0];
+        foreach($endpoints as $test)
+        {
+          if(str_starts_with($test, "https://"))
+          {
+            $endpoint = $test;
+            break;
+          }
+        }
+        
+        if($type === 'ipv4' || $type === 'ipv6')
+        {
+          list($prefix, $range) = explode('/', $id);
+          $prefix = inet_pton($prefix);
+          
+          $lastchar = -1;
+          $lastrepeat = 0;
+          
+          $id = '';
+          $pos = 0;
+          while($range >= 8)
+          {
+            $nextchar = ord($prefix[$pos]);
+            
+            if($nextchar === $lastchar)
+            {
+              $lastrepeat++;
+            }else{
+              if($lastrepeat > 1)
+              {
+                $id .= '{'.$lastrepeat.'}';
+              }
+              
+              $id .= regexEscapeChar($nextchar);
+              $lastchar = $nextchar;
+              $lastrepeat = 1;
+            }
+            
+            $range -= 8;
+            $pos++;
+          }
+          if($lastrepeat > 1)
+          {
+            $id .= '{'.$lastrepeat.'}';
+          }
+          
+          if($range > 0)
+          {
+            $mask = 1 << (8 - $range) - 1;
+            $nextchar = ord($prefix[$pos]) & ~$mask;
+            
+            $id .= '['.regexEscapeChar($nextchar).'-'.regexEscapeChar($nextchar | $mask).']';
+          }
+        }else{
+          $id = strtolower($id);
+        }
+        
+        $records[$id] = preg_replace('/\/+$/', '', $endpoint);
+      }
+    }
+    ksort($records);
+    
+    if(file_exists($cache_file))
+    {
+      file_put_contents($cache_file, json_encode($records, JSON_UNESCAPED_SLASHES));
+    }
+    return $records;
+  });
+}
+
 function get_rdap_record($type, $object)
 {
-  $url = "https://rdap.org/$type/$object";
+  if($type === 'domain')
+  {
+    $dot = strrpos($object, '.');
+    if($dot !== false)
+    {
+      $tld = substr($object, $dot + 1);
+    }else{
+      $tld = $object;
+    }
+    
+    $registry = get_rdap_registry('dns');
+    if(isset($registry[$tld]))
+    {
+      $url = $registry[$tld];
+    }
+  }else if($type === 'ip')
+  {
+    $ip = inet_pton($object);
+    $registry = get_rdap_registry(strlen($ip) > 4 ? 'ipv6' : 'ipv4');
+    foreach($registry as $mask => $endpoint)
+    {
+      if(preg_match("/^$mask/", $ip))
+      {
+        $url = $endpoint;
+        break;
+      }
+    } 
+  }
+  
+  if(empty($url))
+  {
+    return null;
+  }
+  
+  $url = "$url/$type/$object";
+  
   return json_decode(file_get_contents($url, false, get_stream_context()), true);
 }
 
