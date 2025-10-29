@@ -777,7 +777,7 @@ function get_rdap_record($type, $object)
 function get_whois_record($server, $object)
 {
   $timeout = get_query_timeout();
-  if(($socket = fsockopen($server, 43, $error_code, $error_message, $timeout)) !== false)
+  if(($socket = @fsockopen($server, 43, $error_code, $error_message, $timeout)) !== false)
   {
     stream_set_timeout($socket, intval($timeout), intval(fmod($timeout, 1) * 1000000));
     fputs($socket, $object."\r\n");
