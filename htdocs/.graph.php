@@ -1518,14 +1518,14 @@ class HostTriples extends Triples
     if($queries)
     {
       $subdomains = array();
-      if(!empty($hsts))
+      if(isset($hsts) && is_iterable($hsts))
       {
         foreach($hsts as $subdomain => $_)
         {
           if(!empty($subdomain)) $subdomains[$this->normalizeId("$subdomain.$domain_idn")] = true;
         }
       }
-      if(!empty($public))
+      if(isset($public) && is_iterable($public))
       {
         foreach($public as $subdomain => $_)
         {
