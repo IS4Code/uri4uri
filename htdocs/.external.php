@@ -737,19 +737,17 @@ function get_rdap_record($type, $object)
 {
   if($type === 'domain')
   {
-    $dot = strrpos($object, '.');
-    if($dot !== false)
-    {
-      $tld = substr($object, $dot + 1);
-    }else{
-      $tld = $object;
-    }
-    
     $registry = get_rdap_registry('dns');
-    if(isset($registry[$tld]))
-    {
-      $url = $registry[$tld];
-    }
+    
+    $dot = -1;
+    do{
+      $domain = strtolower(substr($object, $dot + 1));
+      if(isset($registry[$domain]))
+      {
+        $url = $registry[$domain];
+        break;
+      }
+    }while(($dot = strpos($object, '.', $dot + 1)) !== false);
   }else if($type === 'ip')
   {
     $ip = inet_pton($object);
