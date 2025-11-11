@@ -656,6 +656,8 @@ function get_rdap_registry($type)
     $source = "https://data.iana.org/rdap/$type.json";
     $data = json_decode(file_get_contents($source, false, get_stream_context()), true);
     
+    $masklengths = array();
+    
     $records = array();
     foreach($data['services'] as &$service)
     {
@@ -675,7 +677,7 @@ function get_rdap_registry($type)
         
         if($type === 'ipv4' || $type === 'ipv6')
         {
-          list($prefix, $range) = explode('/', $id);
+          list($prefix, $masklength) = explode('/', $id);
           $prefix = inet_pton($prefix);
           
           $lastchar = -1;
@@ -683,6 +685,7 @@ function get_rdap_registry($type)
           
           $id = '';
           $pos = 0;
+          $range = $masklength;
           while($range >= 8)
           {
             $nextchar = ord($prefix[$pos]);
@@ -716,6 +719,8 @@ function get_rdap_registry($type)
             
             $id .= '['.regexEscapeChar($nextchar).'-'.regexEscapeChar($nextchar | $mask).']';
           }
+          
+          $masklengths[$id] = $masklength;
         }else{
           $id = strtolower($id);
         }
@@ -723,7 +728,17 @@ function get_rdap_registry($type)
         $records[$id] = preg_replace('/\/+$/', '', $endpoint);
       }
     }
-    ksort($records);
+    if($type === 'dns')
+    {
+      ksort($records);
+    }else{
+      uksort($records, function($a, $b)
+      {
+        $cmp = $masklengths[$b] - $masklengths[$a];
+        if($cmp === 0) return strcmp($a, $b);
+        return $cmp;
+      });
+    }
     
     if(file_exists($cache_file))
     {
