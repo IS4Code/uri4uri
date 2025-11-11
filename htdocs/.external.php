@@ -651,7 +651,7 @@ function regexEscapeChar($ord)
 
 function get_rdap_registry($type)
 {
-  return get_json_source(__DIR__."/data/rdap_$type.json", function($cache_file)
+  return get_json_source(__DIR__."/data/rdap_$type.json", function($cache_file) use($type)
   {
     $source = "https://data.iana.org/rdap/$type.json";
     $data = json_decode(file_get_contents($source, false, get_stream_context()), true);
@@ -711,7 +711,7 @@ function get_rdap_registry($type)
           
           if($range > 0)
           {
-            $mask = 1 << (8 - $range) - 1;
+            $mask = (1 << (8 - $range)) - 1;
             $nextchar = ord($prefix[$pos]) & ~$mask;
             
             $id .= '['.regexEscapeChar($nextchar).'-'.regexEscapeChar($nextchar | $mask).']';
