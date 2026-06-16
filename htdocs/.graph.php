@@ -1193,6 +1193,7 @@ class HostTriples extends Triples
   
   protected function normalizeId($id)
   {
+    $idna_info = array();
     $utf = idn_to_utf8($id, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46, $idna_info);
     if($utf === false)
     {
