@@ -1194,8 +1194,7 @@ class HostTriples extends Triples
   protected function normalizeId($id)
   {
     $idna_info = array();
-    $utf = idn_to_utf8($id, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46, $idna_info);
-    if($utf === false)
+    if(empty($id) || ($utf = idn_to_utf8($id, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46, $idna_info)) === false)
     {
       $utf = $idna_info['result'];
     }
@@ -1210,8 +1209,7 @@ class HostTriples extends Triples
     $graph->addCompressedTriple($subject, 'rdf:type', 'uriv:Host');
     $graph->addCompressedTriple($subject, 'rdfs:label', $this->label($host), 'xsd:string');
     $graph->addCompressedTriple($subject, 'skos:notation', $host, 'uriv:HostDatatype');
-    $host_idn = idn_to_ascii($host, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46);
-    if($host_idn !== false)
+    if(!empty($host) && ($host_idn = idn_to_ascii($host, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46)) !== false)
     {
       $graph->addCompressedTriple($subject, 'skos:notation', $host_idn, 'uriv:HostDatatype-Encoded');
     }
@@ -2173,8 +2171,7 @@ class SchemeTriples extends Triples
     if($dot !== false)
     {
       $tld = substr($scheme, 0, $dot);
-      $tld = idn_to_utf8($tld, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46);
-      if($tld !== false)
+      if(!empty($tld) && ($tld = idn_to_utf8($tld, IDNA_ALLOW_UNASSIGNED, INTL_IDNA_VARIANT_UTS46)) !== false)
       {
         $tlds = get_tlds();
         if(isset($tlds[$tld]))
